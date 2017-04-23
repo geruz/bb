@@ -34,11 +34,7 @@ func NewAction(factory func() interface{}, method reflect.Method) Action {
 		panic(fmt.Sprintf("Функции должна возвращать результат и ошибку, %v", method.Type.NumIn()))
 	}
 	//TODO добавить проверку что второй параметр ошибка
-	if method.Type.NumOut() == 1 {
-		out = method.Type.Out(0)
-	} else {
-		out = nil
-	}
+	out = method.Type.Out(0)
 	return Action{
 		Name: method.Name,
 		Exec: createExec(factory, in, method),

@@ -20,7 +20,14 @@ type Query struct {
 }
 
 func main() {
-	server := bb.NewHttpServer("echo-server", bb.Version{1, 1, 1}, 8088, "localhost", exts.PingExtension{})
+	server := bb.NewHttpServer(
+		"echo-server",
+		bb.Version{1, 1, 1},
+		8088,
+		"localhost",
+		exts.PingExtension{},
+		exts.RamlExtension{},
+	)
 	server.AddResource(`test`, func() interface{} {
 		return Contr{}
 	})
