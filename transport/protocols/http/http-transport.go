@@ -5,25 +5,23 @@ import (
 	"strings"
 
 	"github.com/geruz/bb/codec"
-	"github.com/geruz/bb/resource"
+	"github.com/geruz/bb/transport/configuration"
 	"github.com/valyala/fasthttp"
 )
 
-type Server struct {
-	Port     int
-	Host     string
-	DefCodec codec.Codec
-	Major    int
-	Handlers []resource.Handler
-	Codecs   []codec.Codec
+type HttpTransport struct {
+	Port          int
+	Host          string
+	DefCodec      codec.Codec
+	Configuration configuration.Configuration
 }
 
-func (this *Server) Start() {
+func (this *HttpTransport) Start() {
 	if this.DefCodec == nil {
 		this.DefCodec = codec.Json{}
 	}
 	paths := map[string]func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider){}
-	for _, resource := range this.Handlers {
+	for _, resource := range this.Configuration.Handlers {
 		for _, action := range resource.Actions {
 			p := this.getPath(resource.Name, action.Name)
 			fmt.Println("Register path: ", p)
@@ -59,8 +57,8 @@ func (this *Server) Start() {
 	}
 }
 
-func (this *Server) getPath(resource string, action string) string {
-	path := fmt.Sprintf("/v%v/%v/%v/", this.Major, resource, action)
+func (this *HttpTransport) getPath(resource string, action string) string {
+	path := fmt.Sprintf("/v%v/%v/%v/", this.Configuration.Version.Major, resource, action)
 	path = strings.ToLower(path)
 	return path
 }
