@@ -36,7 +36,7 @@ func newRamlBuilder(name string, handlers []resource.Handler) RamlBuilder {
 			actionPath := strings.ToLower(resourcePath + action.Name + "/")
 			route := ramlResource.Route(handler.Name+" "+action.Name, actionPath).Post()
 			if action.Out != nil {
-				route.Response(200, reflect.Zero(action.Out).Interface())
+				route.Response(fasthttp.StatusOK, reflect.Zero(action.Out).Interface())
 			}
 			if action.In != nil {
 				q := reflect.Zero(action.In).Interface()
