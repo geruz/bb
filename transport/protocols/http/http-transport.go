@@ -14,18 +14,19 @@ type HttpTransport struct {
 	Host          string
 	DefCodec      codec.Codec
 	Configuration configuration.Configuration
+	Extension     []Extension
+	handlers      map[string]func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider)
 }
 
 func (this *HttpTransport) Start() {
 	if this.DefCodec == nil {
 		this.DefCodec = codec.Json{}
 	}
-	paths := map[string]func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider){}
 	for _, resource := range this.Configuration.Handlers {
 		for _, action := range resource.Actions {
 			p := this.getPath(resource.Name, action.Name)
 			fmt.Println("Register path: ", p)
-			paths[p] = func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider) {
+			this.handlers[p] = func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider) {
 				defer resProvider.Recover()
 				answ, err := action.Exec(HttpQueryProvider{
 					ctx, this.DefCodec,
@@ -40,10 +41,13 @@ func (this *HttpTransport) Start() {
 		}
 	}
 	address := fmt.Sprintf("%v:%v", this.Host, this.Port)
+	for _, ext := range this.Extension {
+		ext.Configure(this)
+	}
 	err := fasthttp.ListenAndServe(address, func(ctx *fasthttp.RequestCtx) {
 		resProvider := HttpResultProvider{ctx, this.DefCodec}
 		path := ctx.Path()
-		for p, f := range paths {
+		for p, f := range this.handlers {
 			if p == string(path) {
 				f(ctx, resProvider)
 				return
@@ -55,6 +59,12 @@ func (this *HttpTransport) Start() {
 	if err != nil {
 		panic(err)
 	}
+}
+func (this *HttpTransport) AddHandler(name string, handler func(ctx *fasthttp.RequestCtx)) error {
+	this.handlers[name] = func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider) {
+		handler(ctx)
+	}
+	return nil
 }
 
 func (this *HttpTransport) getPath(resource string, action string) string {
