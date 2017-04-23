@@ -27,7 +27,7 @@ type Query struct {
 }
 
 func main() {
-	server := bb.NewHttpServer(8088, "localhost")
+	server := bb.NewHttpServer("echo-server", bb.Version{1, 1, 1}, 8088, "localhost")
 	server.AddResource(`test`, func() interface{} {
 		return Contr{}
 	})
