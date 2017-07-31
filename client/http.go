@@ -14,28 +14,42 @@ type HttpTransport struct {
 	Minor    int
 }
 
-func (this HttpTransport) Call(address discovery.Address, data []byte, chans AnswerChans) {
+func (this HttpTransport) Send(address discovery.Address, data []byte, meta Meta, chans AnswerChans) {
 	url := fmt.Sprintf("http://%v:%v/v%v/%v/%v/", address.Host, address.Port, this.Major, this.Resource, this.Action)
-	fmt.Println(string(data))
-	statusCode, body, err := fasthttp.Post(data, url, nil)
-	if err != nil {
-		chans.Error <- []byte(err.Error())
-		return
+
+	req := fasthttp.AcquireRequest()
+	req.Header.SetMethod("POST")
+	for key, value := range meta {
+		req.Header.Set(key,value)
 	}
+	req.SetRequestURI(url)
+	req.AppendBody(data)
+	resp := fasthttp.AcquireResponse()
+	client := &fasthttp.Client{}
+	err:= client.Do(req, resp)
+	if err != nil{
+		chans.Error <- []byte(err.Error())
+	}
+	body := resp.Body()
+	statusCode := resp.StatusCode()
 	switch statusCode {
-	case 200:
+	case fasthttp.StatusOK:
 		chans.Success <- body
 		return
-	case 404:
+	case fasthttp.StatusNotFound:
 		chans.NotFound <- body
 		return
-	case 500:
+	case fasthttp.StatusInternalServerError:
 		chans.Error <- body
 		return
-	case 501:
+	case fasthttp.StatusNotImplemented:
 		chans.NotIplemented <- body
+		return
+	case fasthttp.StatusBadRequest:
+		chans.ValidateError <- body
 		return
 	default:
 		chans.Error <- []byte(fmt.Sprintf("Bad status code :v", statusCode))
 	}
 }
+

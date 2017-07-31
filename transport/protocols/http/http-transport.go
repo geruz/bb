@@ -18,6 +18,15 @@ type HttpTransport struct {
 	handlers      map[string]func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider)
 }
 
+func findCodec(name []byte, defCodec codec.Codec) codec.Codec{
+	n := string(name)
+	for _,c := range codec.StdCodecs{
+		if c.Name() == n{
+			return c
+		}
+	}
+	return defCodec
+}
 func (this *HttpTransport) Start() {
 	if this.DefCodec == nil {
 		this.DefCodec = codec.Json{}
@@ -29,8 +38,9 @@ func (this *HttpTransport) Start() {
 			fmt.Println("Register path: ", p)
 			this.handlers[p] = func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider) {
 				defer resProvider.Recover()
+				codec := findCodec(ctx.Request.Header.ContentType(), this.DefCodec)
 				answ, err := action.Exec(HttpQueryProvider{
-					ctx, this.DefCodec,
+					ctx, codec,
 				})
 				if err == nil {
 					resProvider.Success(answ)
