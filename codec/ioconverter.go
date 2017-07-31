@@ -5,3 +5,8 @@ type Codec interface {
 	Encode(interface{}) ([]byte, error)
 	Name() string
 }
+
+var StdCodecs []Codec = []Codec{
+	Json{},
+	MsgPack{},
+}

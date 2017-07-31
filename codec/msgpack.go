@@ -28,5 +28,5 @@ func (this MsgPack) Encode(m interface{}) ([]byte, error) {
 	return nil, err
 }
 func (this MsgPack) Name() string {
-	return "msgpack"
+	return "application/msgpack"
 }

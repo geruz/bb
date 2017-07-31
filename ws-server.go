@@ -6,7 +6,6 @@ import (
 	"github.com/geruz/bb/transport/protocols/ws"
 )
 
-
 func NewWsServer(name string, version Version, port int, host string, exts ...h.Extension) *BBServer {
 	server := NewBBServer(name, version)
 	server.AddCodec(codec.MsgPack{})

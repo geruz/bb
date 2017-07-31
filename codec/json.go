@@ -32,5 +32,5 @@ func (this Json) Encode(m interface{}) ([]byte, error) {
 }
 
 func (this Json) Name() string {
-	return "json"
+	return "application/json"
 }
