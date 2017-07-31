@@ -14,7 +14,7 @@ type WsTransport struct {
 	Minor    int
 }
 
-func (this WsTransport) Send (address discovery.Address, data []byte, ans AnswerChans )  {
+func (this WsTransport) Send (address discovery.Address, data []byte, m Meta, ans AnswerChans )  {
 	wss, err := this.Pool.get(address.Host, address.Port)
 	if err != nil{
 		ans.Error <- []byte(err.Error())

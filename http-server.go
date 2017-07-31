@@ -17,5 +17,3 @@ func NewHttpServer(name string, version Version, port int, host string, exts ...
 	server.AddTransport(httpFactory)
 	return server
 }
-
-
