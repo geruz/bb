@@ -2,7 +2,7 @@ package discovery
 
 import (
 	"fmt"
-	"gitlab.corp.24au/golib/resolver"
+	"gitlab.au.ru/golib/resolver"
 )
 
 func UseConsul(name string, major int, minor int) AdddressProvider {

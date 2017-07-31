@@ -25,6 +25,7 @@ func (this *HttpTransport) Start() {
 	for _, resource := range this.Configuration.Handlers {
 		for _, action := range resource.Actions {
 			p := this.getPath(resource.Name, action.Name)
+			//TODO log
 			fmt.Println("Register path: ", p)
 			this.handlers[p] = func(ctx *fasthttp.RequestCtx, resProvider HttpResultProvider) {
 				defer resProvider.Recover()

@@ -5,30 +5,39 @@ import (
 	"github.com/geruz/bb/client"
 	"github.com/geruz/bb/discovery"
 )
+const n = 100000
 
 func main() {
-	address := "localhost"
-	port := 8088
 	cl := client.Client{
-		Provider:  discovery.UseSimpleProvider(&address, &port),
-		Transport: client.HttpTransport{Resource: `"test"`, Action: "echo", Major: 0, Minor: 0},
+		Provider:  func() (discovery.Address, error){
+			return discovery.Address{
+				"localhost", 8088,
+			}, nil
+		},
+		Transport: client.WsTransport{
+			Pool: client.NewWsPool(),
+			Resource: `test`,
+			Action: "echo",
+			Major: 1,
+			Minor: 0,
+		},
 	}
-	rs, err := cl.Call([]byte("echo"))
-	select {
-	case e := <-err:
-		fmt.Println("e", e)
-		return
-	case r := <-rs.Success:
-		fmt.Println("Success", string(r))
-		break
-	case r := <-rs.Error:
-		fmt.Println("Error", string(r))
-		break
-	case r := <-rs.NotFound:
-		fmt.Println("NotFound", string(r))
-		break
-	case r := <-rs.NotIplemented:
-		fmt.Println("NotIplemented", string(r))
-		break
+	for i := 0; i < n; i++ {
+			rs := cl.Call([]byte(fmt.Sprintf("\"echo: %v\"", i)))
+			select {
+			case r := <-rs.Success:
+				fmt.Println("Success", string(r))
+				break
+			case r := <-rs.Error:
+				fmt.Println("Error", string(r))
+				break
+			case r := <-rs.NotFound:
+				fmt.Println("NotFound", string(r))
+				break
+			case r := <-rs.NotIplemented:
+				fmt.Println("NotIplemented", string(r))
+				break
+			}
+			//time.Sleep(time.Second)
 	}
 }
