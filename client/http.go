@@ -2,10 +2,12 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/geruz/bb/discovery"
 	"github.com/valyala/fasthttp"
 )
 
+var client = &fasthttp.Client{}
 
 type HttpTransport struct {
 	Resource string
@@ -20,14 +22,14 @@ func (this HttpTransport) Send(address discovery.Address, data []byte, meta Meta
 	req := fasthttp.AcquireRequest()
 	req.Header.SetMethod("POST")
 	for key, value := range meta {
-		req.Header.Set(key,value)
+		req.Header.Set(key, value)
 	}
 	req.SetRequestURI(url)
 	req.AppendBody(data)
 	resp := fasthttp.AcquireResponse()
-	client := &fasthttp.Client{}
-	err:= client.Do(req, resp)
-	if err != nil{
+
+	err := client.Do(req, resp)
+	if err != nil {
 		chans.Error <- []byte(err.Error())
 	}
 	body := resp.Body()
@@ -52,4 +54,3 @@ func (this HttpTransport) Send(address discovery.Address, data []byte, meta Meta
 		chans.Error <- []byte(fmt.Sprintf("Bad status code :v", statusCode))
 	}
 }
-
